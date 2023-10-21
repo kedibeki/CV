@@ -228,7 +228,20 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device=device, flip_input=False)
 
 # Modify process_frame_recognition function to use RetinaFace for face detection
-def process_frame_recognition(frame):
+def process_frame_recognition(input):
+    # Check if the input is a URL or a file
+    if isinstance(input, str) and input.startswith('http'):
+        # Get the image from the URL
+        response = requests.get(input)
+        img_arr = np.array(Image.open(BytesIO(response.content)))
+        frame = cv2.cvtColor(img_arr, cv2.COLOR_RGB2BGR)
+    else:
+        # Read the uploaded file as an image
+        img_uploaded = Image.open(input).convert('RGB')
+
+        # Convert the image to an ndarray format
+        frame = np.array(img_uploaded)
+
     # Detect faces in the frame using RetinaFace
     detections = RetinaFace.detect_faces(frame)
 
@@ -271,9 +284,20 @@ def process_frame_recognition(frame):
                                 'emotion': emotion,
                                 'race': race
                             })
+
+                            # Draw a rectangle around the face and label it with the index and dominant emotion
+                            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                            cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+                        else:
+                            st.write(f"No attributes were extracted for face {i+1}.")
+                    else:
+                        st.write("Face coordinates are not in the expected format.")
             except Exception as e:
-                st.write(f"An error occurred: {e}")
-    return all_faces_info
+                st.write(f"An error occurred when processing face {i+1}: {str(e)}")
+    else:
+        st.write("No faces were detected.")
+
+    return frame, all_faces_info
 
 # Define a class that inherits from VideoProcessorBase instead of VideoTransformerBase as it is deprecated
 class VideoProcessor(VideoProcessorBase):
