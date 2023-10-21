@@ -151,7 +151,7 @@ col.write(clock_html, unsafe_allow_html=True)
 col = st.columns(1)[0]
 
 # Set the URL of the Logo image
-image_url = 'https://raw.githubusercontent.com/kedibeki/Emotion-Recognition-and-Tracker/main/Emotion%20Recognition%20and%20Tracker_Background.jpg'
+image_url = 'https://raw.githubusercontent.com/kedibeki/Emotion-Recognition-and-Tracker/main/Emotion%20Recognition%20and%20Tracker_Logo.jpg'
 
 @st.cache_resource(ttl=3600, max_entries=10)
 def get_image(image_url):
