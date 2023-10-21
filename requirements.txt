@@ -3,8 +3,8 @@ beautifulsoup4==4.11.2
 face-alignment==1.4.1
 fastai==2.7.13
 GitPython==3.1.40
-opencv-contrib-python==4.8.0.76
 opencv-python==4.8.0.76
+opencv-contrib-python
 opencv-python-headless==4.8.1.78
 plotly==5.15.0
 PyGithub==2.1.1
