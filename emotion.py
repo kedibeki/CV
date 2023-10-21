@@ -366,6 +366,7 @@ if source == "Selfie":
         all_faces_info = process_frame_recognition(selfie)  # No need to convert the image to PIL format or display it again
 
 
+"""
 if all_faces_info is not None:
     # Count emotions and draw a pie chart
     emotions_count = Counter([info['emotion'] for info in all_faces_info])
@@ -442,7 +443,7 @@ if all_faces_info is not None:
 
     # Display the table
     st.plotly_chart(fig, use_container_width=True)
-
+"""
 
 # Add a line break
 st.markdown("<br>", unsafe_allow_html=True)
