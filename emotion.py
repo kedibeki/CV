@@ -249,36 +249,44 @@ def process_frame_recognition(frame):
     # Initialize an empty list to store info for all faces
     all_faces_info = []
 
-    for i, face in enumerate(faces):  # Iterate over the tuple directly
-        # Extract each face from the frame
-        # Check if face has exactly four items
-        if len(face) == 4:
-            x, y, w, h = face  # Unpack the tuple directly
-            extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
+    if faces:  # Check if faces were detected
+        for i, face in enumerate(faces):  # Iterate over the tuple directly
+            # Extract each face from the frame
+            # Check if face has exactly four items
+            if len(face) == 4:
+                x, y, w, h = face  # Unpack the tuple directly
+                extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
-            # Analyze facial attributes using DeepFace
-            results = DeepFace.analyze(img_path=extracted_face,
-                                      actions=['age', 'gender', 'emotion', 'race'],
-                                      enforce_detection=False)
+                # Analyze facial attributes using DeepFace
+                results = DeepFace.analyze(img_path=extracted_face,
+                                          actions=['age', 'gender', 'emotion', 'race'],
+                                          enforce_detection=False)
 
-            for result in results:
-                age = result['age']
-                gender = result['gender']
-                emotion = result['dominant_emotion']
-                race = result['dominant_race']
-    
-                # Add the info for this face to the list
-                all_faces_info.append({
-                    'index': i+1,
-                    'age': age,
-                    'gender': gender,
-                    'emotion': emotion,
-                    'race': race
-                })
-    
-            # Draw a rectangle around the face and label it with the index and dominant emotion
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-            cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+                if results:  # Check if attributes were extracted
+                    for result in results:
+                        age = result['age']
+                        gender = result['gender']
+                        emotion = result['dominant_emotion']
+                        race = result['dominant_race']
+
+                        # Add the info for this face to the list
+                        all_faces_info.append({
+                            'index': i+1,
+                            'age': age,
+                            'gender': gender,
+                            'emotion': emotion,
+                            'race': race
+                        })
+
+                    # Draw a rectangle around the face and label it with the index and dominant emotion
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                    cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+                else:
+                    print(f"No attributes were extracted for face {i+1}.")
+            else:
+                print("Face coordinates are not in the expected format.")
+    else:
+        print("No faces were detected.")
 
     return frame, all_faces_info
 
