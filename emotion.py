@@ -261,24 +261,24 @@ def process_frame_recognition(frame):
                                       actions=['age', 'gender', 'emotion', 'race'],
                                       enforce_detection=False)
 
-        for result in results:
-            age = result['age']
-            gender = result['gender']
-            emotion = result['dominant_emotion']
-            race = result['dominant_race']
-
-            # Add the info for this face to the list
-            all_faces_info.append({
-                'index': i+1,
-                'age': age,
-                'gender': gender,
-                'emotion': emotion,
-                'race': race
-            })
-
-        # Draw a rectangle around the face and label it with the index and dominant emotion
-        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-        cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+            for result in results:
+                age = result['age']
+                gender = result['gender']
+                emotion = result['dominant_emotion']
+                race = result['dominant_race']
+    
+                # Add the info for this face to the list
+                all_faces_info.append({
+                    'index': i+1,
+                    'age': age,
+                    'gender': gender,
+                    'emotion': emotion,
+                    'race': race
+                })
+    
+            # Draw a rectangle around the face and label it with the index and dominant emotion
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+            cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
 
     return frame, all_faces_info
 
