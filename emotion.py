@@ -243,11 +243,8 @@ def img_to_base64(img):
 
 # Modify process_frame_recognition function to use RetinaFace for face detection
 def process_frame_recognition(frame):
-    # Convert the frame to base64 as RetinaFace.detect_faces() expects a base64 encoded image
-    frame_base64 = img_to_base64(frame)
-
     # Detect faces in the frame using RetinaFace
-    detections = RetinaFace.detect_faces(frame_base64)
+    detections = RetinaFace.detect_faces(frame)
 
     # Initialize an empty list to store info for all faces
     all_faces_info = []
@@ -259,11 +256,8 @@ def process_frame_recognition(frame):
                 x, y, w, h = detection['box']  # Unpack the box coordinates directly
                 extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
-                # Convert the extracted face to base64 as DeepFace.analyze() expects a base64 encoded image
-                extracted_face_base64 = img_to_base64(extracted_face)
-
                 # Analyze facial attributes using DeepFace
-                results = DeepFace.analyze(img_path=extracted_face_base64,
+                results = DeepFace.analyze(img_path=extracted_face,
                                           actions=['age', 'gender', 'emotion', 'race'],
                                           enforce_detection=False)
 
@@ -352,19 +346,18 @@ all_faces_info = None
 # Add a line break
 st.markdown("<br><br>", unsafe_allow_html=True)
 
+# ... (previous code)
+
 # Add code for handling upload file source
 if source == "Upload File":
     uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "png"])
 
     if uploaded_file is not None:
         # Read the uploaded file as an image
-        img_uploaded = Image.open(uploaded_file)
+        img_uploaded = Image.open(uploaded_file).convert('RGB')
 
         # Convert the image to an ndarray format
         img_uploaded = np.array(img_uploaded)
-
-        # Convert the image to base64
-        base64_img = img_to_base64(img_uploaded)
 
         # Process the image using the function defined above
         img_processed, all_faces_info = process_frame_recognition(img_uploaded)
@@ -383,13 +376,10 @@ if source == "URL":
             response = requests.get(url_input)
             if response.status_code == 200:
                 # Read the response content as an image
-                img_url = Image.open(io.BytesIO(response.content))
+                img_url = Image.open(io.BytesIO(response.content)).convert('RGB')
 
                 # Convert the image to an ndarray format
                 img_url = np.array(img_url)
-
-                # Convert the image to base64
-                base64_img = img_to_base64(img_url)
 
                 # Process the image using the function defined above
                 img_processed, all_faces_info = process_frame_recognition(img_url)
