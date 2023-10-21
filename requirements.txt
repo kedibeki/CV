@@ -1,9 +1,7 @@
 pip==23.3
 av==10.0.0
 beautifulsoup4==4.11.2
-cmake
 deepface==0.0.79
-dlib
 face-alignment==1.4.1
 opencv-python-headless
 plotly==5.15.0
