@@ -220,7 +220,7 @@ def load_model(model_name):
     return model
 
 # Choose a model name from the list of supported models
-model_name = st.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
+model_name = st.sidebar.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
 
 # Load the model
 model = load_model(model_name)
