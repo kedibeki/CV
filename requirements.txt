@@ -4,7 +4,7 @@ cmake
 deepface==0.0.79
 dlib
 face-alignment==1.4.1
-opencv-python-headless==4.8.1.78
+opencv-python-headless
 plotly==5.15.0
 PyGithub==2.1.1
 pytz==2023.3.post1
