@@ -251,38 +251,41 @@ def process_frame_recognition(frame):
 
     if detections and isinstance(detections, dict):  # Check if faces were detected and detections is a dictionary
         for i, detection in enumerate(detections.values()):  
-            # Check if detection is a dictionary with a 'box' key
-            if isinstance(detection, dict) and 'box' in detection:
-                x, y, w, h = detection['box']  # Unpack the box coordinates directly
-                extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
+            try:
+                # Check if detection is a dictionary with a 'box' key
+                if isinstance(detection, dict) and 'box' in detection:
+                    x, y, w, h = detection['box']  # Unpack the box coordinates directly
+                    extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
-                # Analyze facial attributes using DeepFace
-                results = DeepFace.analyze(img_path=extracted_face,
-                                          actions=['age', 'gender', 'emotion', 'race'],
-                                          enforce_detection=False)
+                    # Analyze facial attributes using DeepFace
+                    results = DeepFace.analyze(img_path=extracted_face,
+                                              actions=['age', 'gender', 'emotion', 'race'],
+                                              enforce_detection=False)
 
-                if results:  # Check if attributes were extracted
-                    age = results['age']
-                    gender = results['gender']
-                    emotion = results['dominant_emotion']
-                    race = results['dominant_race']
+                    if results:  # Check if attributes were extracted
+                        age = results['age']
+                        gender = results['gender']
+                        emotion = results['dominant_emotion']
+                        race = results['dominant_race']
 
-                    # Add the info for this face to the list
-                    all_faces_info.append({
-                        'index': i+1,
-                        'age': age,
-                        'gender': gender,
-                        'emotion': emotion,
-                        'race': race
-                    })
+                        # Add the info for this face to the list
+                        all_faces_info.append({
+                            'index': i+1,
+                            'age': age,
+                            'gender': gender,
+                            'emotion': emotion,
+                            'race': race
+                        })
 
-                    # Draw a rectangle around the face and label it with the index and dominant emotion
-                    cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                    cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+                        # Draw a rectangle around the face and label it with the index and dominant emotion
+                        cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                        cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
+                    else:
+                        st.write(f"No attributes were extracted for face {i+1}.")
                 else:
-                    st.write(f"No attributes were extracted for face {i+1}.")
-            else:
-                st.write("Face coordinates are not in the expected format.")
+                    st.write("Face coordinates are not in the expected format.")
+            except Exception as e:
+                st.write(f"An error occurred when processing face {i+1}: {str(e)}")
     else:
         st.write("No faces were detected.")
 
