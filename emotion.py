@@ -260,8 +260,14 @@ def process_frame_recognition(frame):
                     if all(isinstance(i, int) for i in [x, y, w, h]):
                         extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
+                        # Convert the extracted face to the correct format
+                        extracted_face = cv2.cvtColor(extracted_face, cv2.COLOR_BGR2RGB)
+                        extracted_face_pil = Image.fromarray(extracted_face)
+                        extracted_face_path = f"temp_face_{i+1}.png"
+                        extracted_face_pil.save(extracted_face_path)
+
                         # Analyze facial attributes using DeepFace
-                        results = DeepFace.analyze(img_path=extracted_face,
+                        results = DeepFace.analyze(img_path=extracted_face_path,
                                                   actions=['age', 'gender', 'emotion', 'race'],
                                                   enforce_detection=False)
 
