@@ -251,7 +251,7 @@ def process_frame_recognition(frame):
 
     for i, face in enumerate(faces):  # Iterate over the tuple directly
         # Extract each face from the frame
-        x, y, w, h = face['facial_area']
+        x, y, w, h = face  # Unpack the tuple directly
         extracted_face = frame[y:y+h, x:x+w]
 
         # Analyze facial attributes using DeepFace
