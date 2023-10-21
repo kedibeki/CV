@@ -243,21 +243,27 @@ def img_to_base64(img):
 
 # Modify process_frame_recognition function to use RetinaFace for face detection
 def process_frame_recognition(frame):
+    # Convert the frame to base64 as RetinaFace.detect_faces() expects a base64 encoded image
+    frame_base64 = img_to_base64(frame)
+
     # Detect faces in the frame using RetinaFace
-    detections = RetinaFace.detect_faces(frame)
+    detections = RetinaFace.detect_faces(frame_base64)
 
     # Initialize an empty list to store info for all faces
     all_faces_info = []
 
-    if detections and isinstance(detections, list):  # Check if faces were detected and detections is a list
-        for i, detection in enumerate(detections):  
+    if detections and isinstance(detections, dict):  # Check if faces were detected and detections is a dictionary
+        for i, detection in enumerate(detections.values()):  
             # Check if detection is a dictionary with a 'box' key
             if isinstance(detection, dict) and 'box' in detection:
                 x, y, w, h = detection['box']  # Unpack the box coordinates directly
                 extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
+                # Convert the extracted face to base64 as DeepFace.analyze() expects a base64 encoded image
+                extracted_face_base64 = img_to_base64(extracted_face)
+
                 # Analyze facial attributes using DeepFace
-                results = DeepFace.analyze(img_path=extracted_face,
+                results = DeepFace.analyze(img_path=extracted_face_base64,
                                           actions=['age', 'gender', 'emotion', 'race'],
                                           enforce_detection=False)
 
