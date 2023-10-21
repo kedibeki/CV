@@ -32,8 +32,6 @@ from urllib.parse import urlparse
 from PIL import Image
 from PIL import UnidentifiedImageError
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
 
 # Import Streamlit library
 import streamlit as st
@@ -367,6 +365,7 @@ if source == "Selfie":
         # Process the image using the function defined above
         all_faces_info = process_frame_recognition(selfie)  # No need to convert the image to PIL format or display it again
 
+
 if all_faces_info is not None:
     # Count emotions and draw a pie chart
     emotions_count = Counter([info['emotion'] for info in all_faces_info])
@@ -382,61 +381,67 @@ if all_faces_info is not None:
         "neutral": "gray"
     }
 
-    # Use matplotlib.pyplot and st.pyplot to draw a pie chart of the emotion distribution with less code
-    plt.figure(figsize=(6,6))
-    plt.pie(x=list(emotions_count.values()),
-            labels=list(emotions_count.keys()),
-            colors=[colors[emotion] for emotion in emotions_count.keys()],  # Pass the colors based on the labels
-            autopct="%1.1f%%")
-    plt.title("Emotion Distribution")
-    plt.legend(loc="lower center", bbox_to_anchor=(0.5, -0.2), ncol=len(emotions_count))
-    st.pyplot(fig, use_container_width=True)  # Display the pie chart using st.pyplot instead of st.plotly_chart
+    fig = go.Figure(data=[go.Pie(labels=list(emotions_count.keys()),
+                                 values=list(emotions_count.values()),
+                                 marker_colors=[colors[emotion] for emotion in emotions_count.keys()])])  # Pass the colors to marker_colors based on the labels
+
+    fig.update_layout(
+        title_text="Emotion Distribution",
+        autosize=False,
+        width=500,
+        height=500,
+        margin=dict(l=50, r=50, b=100, t=100, pad=4),
+        paper_bgcolor="rgba(0,0,0,0)",  # Makes background transparent
+        plot_bgcolor="rgba(0,0,0,0)",  # Makes plot background transparent
+        legend=dict(
+            orientation="h",  # Horizontal legend
+            yanchor="bottom",
+            y=-0.2,  # Puts legend below plot
+            xanchor="center",
+            x=0.5
+        )
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 
-# Convert all_faces_info to a dataframe using pandas
-df = pd.DataFrame(all_faces_info)
+    # Create a DataFrame from the list of dictionaries
+    df = pd.DataFrame(all_faces_info)
 
-# Get some basic statistics of the dataframe using describe
-st.write(df.describe())
+    # Group the DataFrame by 'emotion' and aggregate other columns
+    df_grouped = df.groupby('emotion').agg({
+        'index': lambda x: ', '.join(map(str, x)),
+        'age': lambda x: ', '.join(map(str, x)),
+        'gender': lambda x: ', '.join(map(str, x)),
+        'race': lambda x: ', '.join(map(str, x))
+    })
 
-# Create a pivot table from the dataframe using pandas
-df_pivot = pd.pivot_table(df, index='emotion', aggfunc={
-    'index': lambda x: ', '.join(map(str, x)),
-    'age': lambda x: ', '.join(map(str, x)),
-    'gender': lambda x: ', '.join(map(str, x)),
-    'race': lambda x: ', '.join(map(str, x))
-})
+    # Reset the index of the DataFrame to get a row number
+    df_grouped.reset_index(inplace=True)
 
-# Add a row number column to the pivot table
-df_pivot.insert(0, '', range(1, 1 + len(df_pivot)))
+    # Add a new column at the beginning for row number
+    df_grouped.insert(0, '', range(1, 1 + len(df_grouped)))
 
-# Create a table from the pivot table using Plotly
-fig = go.Figure(data=[go.Table(
-    header=dict(values=list(df_pivot.columns),
-                fill_color='blue',
-                align='left',
-                font=dict(color='white', size=12)),
-    cells=dict(values=[df_pivot[col].tolist() for col in df_pivot.columns],
-              fill_color=['lightgreen']+['white']*(len(df_pivot.columns)-1),
-              align='left',
-              font=dict(color='darkslategray', size=11),
-              line_color='darkslategray',
-              hover_data=[None]+[df_pivot[col].tolist() for col in df_pivot.columns[1:]],  # Add hover data for each column except the row number
-              color_continuous_scale='Blues',  # Apply a color gradient based on the values in the row number column
-              color=df_pivot[''].tolist()))  # Pass the values in the row number column as color
-])
+    # Create a table using Plotly
+    fig = go.Figure(data=[go.Table(
+        header=dict(values=list(df_grouped.columns),
+                    fill_color='blue',
+                    align='left',
+                    font=dict(color='white', size=12)),
+        cells=dict(values=[df_grouped[col].tolist() for col in df_grouped.columns],
+                  fill_color=['lightgreen']+['white']*(len(df_grouped.columns)-1),
+                  align='left',
+                  font=dict(color='darkslategray', size=11),
+                  line_color='darkslategray'))
+    ])
 
-# Set the layout to have a transparent background and a title
-fig.update_layout({
-    'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-    'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    'title': 'Facial Attributes by Emotion',  # Add a title to the table
-    'height': 600,  # Adjust the height of the table
-    'width': 800  # Adjust the width of the table
-})
+    # Set the layout to have a transparent background
+    fig.update_layout({
+        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+    })
 
-# Display the table
-st.plotly_chart(fig, use_container_width=True)
+    # Display the table
+    st.plotly_chart(fig, use_container_width=True)
 
 
 # Add a line break
