@@ -251,8 +251,12 @@ def process_frame_recognition(frame):
 
     for i, face in enumerate(faces):  # Iterate over the tuple directly
         # Extract each face from the frame
-        x, y, w, h = face  # Unpack the tuple directly
-        extracted_face = frame[y:y+h, x:x+w]
+        # Check if face has exactly four items
+        if len(face) == 4:
+            x, y, w, h = face  # Unpack the tuple directly
+        else:
+            # Handle the case where face has more than four items
+            pass 
 
         # Analyze facial attributes using DeepFace
         results = DeepFace.analyze(img_path=extracted_face,
