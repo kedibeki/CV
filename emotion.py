@@ -271,20 +271,9 @@ def process_frame_recognition(frame):
                                 'emotion': emotion,
                                 'race': race
                             })
-
-                            # Draw a rectangle around the face and label it with the index and dominant emotion
-                            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-                            cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
-                        else:
-                            st.write(f"No attributes were extracted for face {i+1}.")
-                    else:
-                        st.write("Face coordinates are not in the expected format.")
             except Exception as e:
-                st.write(f"An error occurred when processing face {i+1}: {str(e)}")
-    else:
-        st.write("No faces were detected.")
-
-    return frame, all_faces_info
+                st.write(f"An error occurred: {e}")
+    return all_faces_info
 
 # Define a class that inherits from VideoProcessorBase instead of VideoTransformerBase as it is deprecated
 class VideoProcessor(VideoProcessorBase):
