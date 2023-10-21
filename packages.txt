@@ -1,8 +1,8 @@
-build-essential  # Add this line
-cmake  # Add this line
-libopenblas-dev  # Add this line
-liblapack-dev  # Add this line
+build-essential 
+cmake  
+libopenblas-dev  
+liblapack-dev  
 libsm6
 libxext6
 libxrender-dev
-libgl1-mesa-glx  # Replace 'libgl1' with 'libgl1-mesa-glx'
+libgl1-mesa-glx  
