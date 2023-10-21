@@ -2,6 +2,7 @@ pip==23.3
 av
 beautifulsoup4
 deepface
+dlib
 face-alignment
 opencv-python-headless
 plotly
