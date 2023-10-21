@@ -442,6 +442,11 @@ if all_faces_info is not None:
     st.plotly_chart(fig, use_container_width=True)
 
 
+    # Ensure all dictionaries in all_faces_info have an 'emotion' key
+    for info in all_faces_info:
+        if 'emotion' not in info:
+            info['emotion'] = None  # or set it to some default value
+
     # Create a DataFrame from the list of dictionaries
     df = pd.DataFrame(all_faces_info)
 
