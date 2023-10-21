@@ -227,20 +227,6 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Initialize the face aligner
 fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device=device, flip_input=False)
 
-# Define a function that converts an image to base64
-def img_to_base64(img):
-    # Convert the image to a base64 encoded image as DeepFace.analyze() expects an image file or a base64 encoded image
-    is_success, im_buf_arr = cv2.imencode(".jpg", img)
-
-    # Access the second element of the tuple and convert it to base64
-    byte_im = im_buf_arr.tobytes()
-    base64_im = base64.b64encode(byte_im)
-
-    # Convert the base64_im variable to a string
-    base64_im = base64_im.decode('utf-8')
-
-    return base64_im
-
 # Modify process_frame_recognition function to use RetinaFace for face detection
 def process_frame_recognition(frame):
     # Detect faces in the frame using RetinaFace
@@ -261,13 +247,13 @@ def process_frame_recognition(frame):
                         extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
                         # Convert the extracted face to the correct format
-                        extracted_face = cv2.cvtColor(extracted_face, cv2.COLOR_BGR2RGB)
-                        extracted_face_pil = Image.fromarray(extracted_face)
-                        extracted_face_path = f"temp_face_{i+1}.png"
-                        extracted_face_pil.save(extracted_face_path)
+                        is_success, im_buf_arr = cv2.imencode(".jpg", extracted_face)
+                        byte_im = im_buf_arr.tobytes()
+                        base64_im = base64.b64encode(byte_im)
+                        base64_im = base64_im.decode('utf-8')
 
                         # Analyze facial attributes using DeepFace
-                        results = DeepFace.analyze(img_path=extracted_face_path,
+                        results = DeepFace.analyze(img_path=base64_im,
                                                   actions=['age', 'gender', 'emotion', 'race'],
                                                   enforce_detection=False)
 
