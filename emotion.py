@@ -32,6 +32,8 @@ from urllib.parse import urlparse
 from PIL import Image
 from PIL import UnidentifiedImageError
 import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 # Import Streamlit library
 import streamlit as st
