@@ -241,7 +241,7 @@ def img_to_base64(img):
 
     return base64_im
 
-# Modify your process_frame_recognition function to use RetinaFace for face detection
+# Modify process_frame_recognition function to use RetinaFace for face detection
 def process_frame_recognition(frame):
     # Detect faces in the frame using RetinaFace
     faces = RetinaFace.detect_faces(frame)
@@ -249,7 +249,7 @@ def process_frame_recognition(frame):
     # Initialize an empty list to store info for all faces
     all_faces_info = []
 
-    for i, face in enumerate(faces.values()):  # Iterate over the values of the faces dictionary
+    for i, face in enumerate(faces):  # Iterate over the tuple directly
         # Extract each face from the frame
         x, y, w, h = face['facial_area']
         extracted_face = frame[y:y+h, x:x+w]
