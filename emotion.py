@@ -282,11 +282,11 @@ def process_frame_recognition(frame):
                     cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
                     cv2.putText(frame, f"{i+1}: {emotion}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
                 else:
-                    print(f"No attributes were extracted for face {i+1}.")
+                    st.write(f"No attributes were extracted for face {i+1}.")
             else:
-                print("Face coordinates are not in the expected format.")
+                st.write("Face coordinates are not in the expected format.")
     else:
-        print("No faces were detected.")
+        st.write("No faces were detected.")
 
     return frame, all_faces_info
 
