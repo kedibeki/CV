@@ -1,5 +1,7 @@
+av==10.0.0
 beautifulsoup4==4.11.2
 deepface==0.0.79
+dlib==19.24.2
 face-alignment==1.4.1
 GitPython==3.1.40
 opencv-python-headless==4.8.1.78
