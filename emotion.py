@@ -341,7 +341,7 @@ st.markdown("<br><br>", unsafe_allow_html=True)
 
 # Add code for handling upload file source
 if source == "Upload File":
-    uploaded_file = st.image_uploader("Choose an image file", type=["jpg", "png"])  # Use st.image_uploader instead of st.file_uploader
+    uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "png"])  # Use st.image_uploader instead of st.file_uploader
 
     if uploaded_file is not None:
         # Process the image using the function defined above
