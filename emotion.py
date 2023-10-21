@@ -256,9 +256,6 @@ def process_frame_recognition(frame):
             x, y, w, h = face  # Unpack the tuple directly
             extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
 
-            # Convert the image to base64
-            base64_img = img_to_base64(extracted_face)
-
             # Analyze facial attributes using DeepFace
             results = DeepFace.analyze(img_path=extracted_face,
                                       actions=['age', 'gender', 'emotion', 'race'],
