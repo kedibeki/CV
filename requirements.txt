@@ -3,6 +3,7 @@ av
 beautifulsoup4
 deepface
 face-alignment
+imutils
 opencv-python-headless
 plotly
 PyGithub
