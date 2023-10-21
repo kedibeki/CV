@@ -215,11 +215,15 @@ div[data-testid="stSidebar"] {{
 
 # Load a pre-trained model for attribute recognition using DeepFace
 @st.cache_resource(ttl=3600, max_entries=10)
-def load_model():
-    model = DeepFace.build_model("VGG-Face")
+def load_model(model_name):
+    model = DeepFace.build_model(model_name)
     return model
 
-model = load_model()
+# Choose a model name from the list of supported models
+model_name = st.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
+
+# Load the model
+model = load_model(model_name)
 
 # Check if CUDA is available, else use CPU
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -227,7 +231,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # Initialize the face aligner
 fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device=device, flip_input=False)
 
-# Modify process_frame_recognition function to use RetinaFace for face detection
+# Modify process_frame_recognition function to use RetinaFace for face detection and alignment
 def process_frame_recognition(input):
     # Check if the input is a URL or a file
     if isinstance(input, str) and input.startswith('http'):
@@ -251,24 +255,23 @@ def process_frame_recognition(input):
     if detections and isinstance(detections, dict):  # Check if faces were detected and detections is a dictionary
         for i, detection in enumerate(detections.values()):  
             try:
-                # Check if detection is a dictionary with a 'box' key
-                if isinstance(detection, dict) and 'box' in detection:
+                # Check if detection is a dictionary with a 'box' and 'landmarks' key
+                if isinstance(detection, dict) and 'box' in detection and 'landmarks' in detection:
                     x, y, w, h = detection['box']  # Unpack the box coordinates directly
+                    landmarks = detection['landmarks']  # Get the landmarks dictionary
 
                     # Check if the coordinates are integers as expected
                     if all(isinstance(i, int) for i in [x, y, w, h]):
-                        extracted_face = frame[y:y+h, x:x+w]  # Define 'extracted_face' here
+                        extracted_face = frame[y:y+h, x:x+w]  # Extract the face from the frame
 
-                        # Convert the extracted face to the correct format
-                        is_success, im_buf_arr = cv2.imencode(".jpg", extracted_face)
-                        byte_im = im_buf_arr.tobytes()
-                        base64_im = base64.b64encode(byte_im)
-                        base64_im = base64_im.decode('utf-8')
+                        # Align the face based on the landmarks
+                        aligned_face = fa.align(extracted_face, landmarks)
 
                         # Analyze facial attributes using DeepFace
-                        results = DeepFace.analyze(img_path=base64_im,
+                        results = DeepFace.analyze(img_path=aligned_face,
                                                   actions=['age', 'gender', 'emotion', 'race'],
-                                                  enforce_detection=False)
+                                                  enforce_detection=False,
+                                                  model_name=model_name)
 
                         if results:  # Check if attributes were extracted
                             age = results['age']
@@ -291,38 +294,17 @@ def process_frame_recognition(input):
                         else:
                             st.write(f"No attributes were extracted for face {i+1}.")
                     else:
-                        st.write("Face coordinates are not in the expected format.")
+                        st.error("Face coordinates are not in the expected format.")
             except Exception as e:
-                st.write(f"An error occurred when processing face {i+1}: {str(e)}")
+                st.error(f"An error occurred when processing face {i+1}: {str(e)}")
     else:
         st.write("No faces were detected.")
 
-    return frame, all_faces_info
+    # Display the frame with the detected faces and their attributes
+    st.image(frame)
 
-# Define a class that inherits from VideoProcessorBase instead of VideoTransformerBase as it is deprecated
-class VideoProcessor(VideoProcessorBase):
-    frame_lock: bool = False
-
-    def recv(self):
-        # Get the original frame from the video stream
-        frame = self.video_stream.recv()
-
-        if not self.frame_lock:
-            # Convert the frame to an ndarray format
-            img = frame.to_ndarray(format="bgr24")
-
-            # Process the frame using the function defined above
-            img_processed, all_faces_info = process_frame_recognition(img)
-
-            # Save the info for all faces as an attribute of the class instance
-            self.all_faces_info = all_faces_info
-
-            self.frame_lock = True  # Lock after processing the first frame
-
-        # Return a new frame with the processed image
-        return av.VideoFrame.from_ndarray(img_processed, format="bgr24")
-
-
+    return all_faces_info
+  
 st.markdown("<h1 style='text-align: center;'>Emotion Recognizer and Tracker</h1>", unsafe_allow_html=True)
 st.markdown("<h2 style='text-align: center;'>Recognize and track emotions with state-of-art AI/ML</h2>", unsafe_allow_html=True)
 
@@ -357,62 +339,31 @@ all_faces_info = None
 # Add a line break
 st.markdown("<br><br>", unsafe_allow_html=True)
 
-# ... (previous code)
-
 # Add code for handling upload file source
 if source == "Upload File":
-    uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "png"])
+    uploaded_file = st.image_uploader("Choose an image file", type=["jpg", "png"])  # Use st.image_uploader instead of st.file_uploader
 
     if uploaded_file is not None:
-        # Read the uploaded file as an image
-        img_uploaded = Image.open(uploaded_file).convert('RGB')
-
-        # Convert the image to an ndarray format
-        img_uploaded = np.array(img_uploaded)
-
         # Process the image using the function defined above
-        img_processed, all_faces_info = process_frame_recognition(img_uploaded)
-
-        # Display the processed image with a caption
-        st.image(img_processed, caption="Processed Image")
+        all_faces_info = process_frame_recognition(uploaded_file)  # No need to convert the image to an ndarray format or display it again
 
 # Add code for handling url source
 if source == "URL":
     with st.form(key='url_form'):
-        url_input = st.text_input("Enter an image URL")
+        url_input = st.url_input("Enter an image URL")  # Use st.url_input instead of st.text_input
         submit_button = st.form_submit_button(label='Submit')
 
         if submit_button and url_input:
-            # Get the response from the url and check if it is valid
-            response = requests.get(url_input)
-            if response.status_code == 200:
-                # Read the response content as an image
-                img_url = Image.open(io.BytesIO(response.content)).convert('RGB')
+            # Process the image using the function defined above
+            all_faces_info = process_frame_recognition(url_input)  # No need to get the response from the url or convert it to an ndarray format or display it again
 
-                # Convert the image to an ndarray format
-                img_url = np.array(img_url)
-
-                # Process the image using the function defined above
-                img_processed, all_faces_info = process_frame_recognition(img_url)
-
-                # Display the processed image with a caption
-                st.image(img_processed, caption="Processed Image")
-            else:
-                # Display an error message if the url is invalid
-                st.error("Invalid URL")
-
+# Add code for handling selfie source
 if source == "Selfie":
-    webrtc_ctx = webrtc_streamer(key="selfie", video_processor_factory=VideoProcessor)
+    selfie = st.camera_input(label="Take a selfie")  # Use st.camera_input instead of webrtc_streamer
 
-    if st.button('Capture'):
-        if webrtc_ctx.video_processor is not None:
-            if webrtc_ctx.video_processor.frame_lock:
-                all_faces_info = webrtc_ctx.video_processor.all_faces_info
-                # Convert the processed image to PIL format
-                img_processed_pil = Image.fromarray(img_processed)
-                # Display the processed image
-                st.image(img_processed_pil, caption="Processed Image")
-
+    if selfie is not None:
+        # Process the image using the function defined above
+        all_faces_info = process_frame_recognition(selfie)  # No need to convert the image to PIL format or display it again
 
 if all_faces_info is not None:
     # Count emotions and draw a pie chart
@@ -429,81 +380,61 @@ if all_faces_info is not None:
         "neutral": "gray"
     }
 
-    fig = go.Figure(data=[go.Pie(labels=list(emotions_count.keys()),
-                                 values=list(emotions_count.values()),
-                                 marker_colors=[colors[emotion] for emotion in emotions_count.keys()])])  # Pass the colors to marker_colors based on the labels
-
-    fig.update_layout(
-        title_text="Emotion Distribution",
-        autosize=False,
-        width=500,
-        height=500,
-        margin=dict(l=50, r=50, b=100, t=100, pad=4),
-        paper_bgcolor="rgba(0,0,0,0)",  # Makes background transparent
-        plot_bgcolor="rgba(0,0,0,0)",  # Makes plot background transparent
-        legend=dict(
-            orientation="h",  # Horizontal legend
-            yanchor="bottom",
-            y=-0.2,  # Puts legend below plot
-            xanchor="center",
-            x=0.5
-        )
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    # Use matplotlib.pyplot and st.pyplot to draw a pie chart of the emotion distribution with less code
+    plt.figure(figsize=(6,6))
+    plt.pie(x=list(emotions_count.values()),
+            labels=list(emotions_count.keys()),
+            colors=[colors[emotion] for emotion in emotions_count.keys()],  # Pass the colors based on the labels
+            autopct="%1.1f%%")
+    plt.title("Emotion Distribution")
+    plt.legend(loc="lower center", bbox_to_anchor=(0.5, -0.2), ncol=len(emotions_count))
+    st.pyplot(fig, use_container_width=True)  # Display the pie chart using st.pyplot instead of st.plotly_chart
 
 
-    if all_faces_info is not None and len(all_faces_info) > 0:  # Check if all_faces_info is not empty
-        # Ensure all dictionaries in all_faces_info have an 'emotion' key
-        for info in all_faces_info:
-            if 'emotion' not in info:
-                info['emotion'] = None  # or set it to some default value
+# Convert all_faces_info to a dataframe using pandas
+df = pd.DataFrame(all_faces_info)
 
-    st.write(all_faces_info)  # Print all_faces_info to check its contents
+# Get some basic statistics of the dataframe using describe
+st.write(df.describe())
 
-    # Create a DataFrame from the list of dictionaries
-    df = pd.DataFrame(all_faces_info)
+# Create a pivot table from the dataframe using pandas
+df_pivot = pd.pivot_table(df, index='emotion', aggfunc={
+    'index': lambda x: ', '.join(map(str, x)),
+    'age': lambda x: ', '.join(map(str, x)),
+    'gender': lambda x: ', '.join(map(str, x)),
+    'race': lambda x: ', '.join(map(str, x))
+})
 
-    st.write(df.head())  # Print the first few rows of df to check its contents
+# Add a row number column to the pivot table
+df_pivot.insert(0, '', range(1, 1 + len(df_pivot)))
 
-    # Create a DataFrame from the list of dictionaries
-    df = pd.DataFrame(all_faces_info)
+# Create a table from the pivot table using Plotly
+fig = go.Figure(data=[go.Table(
+    header=dict(values=list(df_pivot.columns),
+                fill_color='blue',
+                align='left',
+                font=dict(color='white', size=12)),
+    cells=dict(values=[df_pivot[col].tolist() for col in df_pivot.columns],
+              fill_color=['lightgreen']+['white']*(len(df_pivot.columns)-1),
+              align='left',
+              font=dict(color='darkslategray', size=11),
+              line_color='darkslategray',
+              hover_data=[None]+[df_pivot[col].tolist() for col in df_pivot.columns[1:]],  # Add hover data for each column except the row number
+              color_continuous_scale='Blues',  # Apply a color gradient based on the values in the row number column
+              color=df_pivot[''].tolist()))  # Pass the values in the row number column as color
+])
 
-    # Group the DataFrame by 'emotion' and aggregate other columns
-    df_grouped = df.groupby('emotion').agg({
-        'index': lambda x: ', '.join(map(str, x)),
-        'age': lambda x: ', '.join(map(str, x)),
-        'gender': lambda x: ', '.join(map(str, x)),
-        'race': lambda x: ', '.join(map(str, x))
-    })
+# Set the layout to have a transparent background and a title
+fig.update_layout({
+    'plot_bgcolor': 'rgba(0, 0, 0, 0)',
+    'paper_bgcolor': 'rgba(0, 0, 0, 0)',
+    'title': 'Facial Attributes by Emotion',  # Add a title to the table
+    'height': 600,  # Adjust the height of the table
+    'width': 800  # Adjust the width of the table
+})
 
-    # Reset the index of the DataFrame to get a row number
-    df_grouped.reset_index(inplace=True)
-
-    # Add a new column at the beginning for row number
-    df_grouped.insert(0, '', range(1, 1 + len(df_grouped)))
-
-    # Create a table using Plotly
-    fig = go.Figure(data=[go.Table(
-        header=dict(values=list(df_grouped.columns),
-                    fill_color='blue',
-                    align='left',
-                    font=dict(color='white', size=12)),
-        cells=dict(values=[df_grouped[col].tolist() for col in df_grouped.columns],
-                  fill_color=['lightgreen']+['white']*(len(df_grouped.columns)-1),
-                  align='left',
-                  font=dict(color='darkslategray', size=11),
-                  line_color='darkslategray'))
-    ])
-
-    # Set the layout to have a transparent background
-    fig.update_layout({
-        'plot_bgcolor': 'rgba(0, 0, 0, 0)',
-        'paper_bgcolor': 'rgba(0, 0, 0, 0)',
-    })
-
-    # Display the table
-    st.plotly_chart(fig, use_container_width=True)
-
+# Display the table
+st.plotly_chart(fig, use_container_width=True)
 
 
 # Add a line break
