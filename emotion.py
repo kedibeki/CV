@@ -363,6 +363,7 @@ if source == "Selfie":
 
     if selfie is not None:
         # Process the image using the function defined above
+        st.image(selfie)
         all_faces_info = process_frame_recognition(selfie)  # No need to convert the image to PIL format or display it again
 
 
