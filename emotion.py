@@ -219,12 +219,6 @@ def load_model(model_name):
     model = DeepFace.build_model(model_name)
     return model
 
-# Choose a model name from the list of supported models
-model_name = st.sidebar.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
-
-# Load the model
-model = load_model(model_name)
-
 # Check if CUDA is available, else use CPU
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -232,8 +226,11 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device=device, flip_input=False)
 
 # Modify process_frame_recognition function to use RetinaFace for face detection and alignment
-def process_frame_recognition(input):
-    # Check if the input is a URL or a file
+def process_frame_recognition(input, model_name='VGG-Face'):
+    # Load the model
+    model = load_model(model_name)
+
+  # Check if the input is a URL or a file
     if isinstance(input, str) and input.startswith('http'):
         # Get the image from the URL
         response = requests.get(input)
@@ -333,6 +330,10 @@ The table presents detailed information about each face detected in the image. E
 
 
 st.sidebar.title("Navigation Menu")
+# Choose a model name from the list of supported models
+model_name = st.sidebar.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
+
+# choose a file upload and processing
 source = st.sidebar.selectbox("Choose a source", ["Upload File", "URL", "Selfie"])
 all_faces_info = None
 
@@ -368,6 +369,7 @@ if source == "Selfie":
 
 
 if all_faces_info is not None:
+    df = pd.DataFrame(all_faces_info)
     # Count emotions and draw a pie chart
     emotions_count = Counter([info['emotion'] for info in all_faces_info])
 
