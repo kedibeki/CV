@@ -341,7 +341,7 @@ st.markdown("<br><br>", unsafe_allow_html=True)
 
 # Add code for handling upload file source
 if source == "Upload File":
-    uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "png"])  # Use st.image_uploader instead of st.file_uploader
+    uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "png"])
 
     if uploaded_file is not None:
         # Process the image using the function defined above
@@ -350,7 +350,7 @@ if source == "Upload File":
 # Add code for handling url source
 if source == "URL":
     with st.form(key='url_form'):
-        url_input = st.url_input("Enter an image URL")  # Use st.url_input instead of st.text_input
+        url_input = st.text_input("Enter an image URL")
         submit_button = st.form_submit_button(label='Submit')
 
         if submit_button and url_input:
