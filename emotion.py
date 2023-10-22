@@ -219,6 +219,13 @@ def load_model(model_name):
     model = DeepFace.build_model(model_name)
     return model
 
+st.sidebar.title("Navigation Menu")
+# Choose a model name from the list of supported models
+model_name = st.sidebar.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
+
+# Load the model
+model = load_model(model_name)
+
 # Check if CUDA is available, else use CPU
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -226,10 +233,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device=device, flip_input=False)
 
 # Modify process_frame_recognition function to use RetinaFace for face detection and alignment
-def process_frame_recognition(input, model_name='VGG-Face'):
-    # Load the model
-    model = load_model(model_name)
-
+def process_frame_recognition(input):
   # Check if the input is a URL or a file
     if isinstance(input, str) and input.startswith('http'):
         # Get the image from the URL
@@ -329,10 +333,6 @@ The table presents detailed information about each face detected in the image. E
 """, unsafe_allow_html=True)
 
 
-st.sidebar.title("Navigation Menu")
-# Choose a model name from the list of supported models
-model_name = st.sidebar.selectbox("Choose a face recognition model", ["VGG-Face", "Facenet", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"])
-
 # choose a file upload and processing
 source = st.sidebar.selectbox("Choose a source", ["Upload File", "URL", "Selfie"])
 all_faces_info = None
@@ -346,7 +346,7 @@ if source == "Upload File":
 
     if uploaded_file is not None:
         # Process the image using the function defined above
-        all_faces_info = process_frame_recognition(uploaded_file, model_name)  # No need to convert the image to an ndarray format or display it again
+        all_faces_info = process_frame_recognition(uploaded_file)  # No need to convert the image to an ndarray format or display it again
 
 # Add code for handling url source
 if source == "URL":
@@ -356,7 +356,7 @@ if source == "URL":
 
         if submit_button and url_input:
             # Process the image using the function defined above
-            all_faces_info = process_frame_recognition(url_input, model_name)  # No need to get the response from the url or convert it to an ndarray format or display it again
+            all_faces_info = process_frame_recognition(url_input)  # No need to get the response from the url or convert it to an ndarray format or display it again
 
 # Add code for handling selfie source
 if source == "Selfie":
@@ -365,11 +365,10 @@ if source == "Selfie":
     if selfie is not None:
         # Process the image using the function defined above
         st.image(selfie)
-        all_faces_info = process_frame_recognition(selfie, model_name)  # No need to convert the image to PIL format or display it again
+        all_faces_info = process_frame_recognition(selfie)  # No need to convert the image to PIL format or display it again
 
 
 if all_faces_info is not None:
-    df = pd.DataFrame(all_faces_info)
     # Count emotions and draw a pie chart
     emotions_count = Counter([info['emotion'] for info in all_faces_info])
 
