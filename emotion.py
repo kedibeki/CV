@@ -346,7 +346,7 @@ if source == "Upload File":
 
     if uploaded_file is not None:
         # Process the image using the function defined above
-        all_faces_info = process_frame_recognition(uploaded_file)  # No need to convert the image to an ndarray format or display it again
+        all_faces_info = process_frame_recognition(uploaded_file, model_name)  # No need to convert the image to an ndarray format or display it again
 
 # Add code for handling url source
 if source == "URL":
@@ -356,7 +356,7 @@ if source == "URL":
 
         if submit_button and url_input:
             # Process the image using the function defined above
-            all_faces_info = process_frame_recognition(url_input)  # No need to get the response from the url or convert it to an ndarray format or display it again
+            all_faces_info = process_frame_recognition(url_input, model_name)  # No need to get the response from the url or convert it to an ndarray format or display it again
 
 # Add code for handling selfie source
 if source == "Selfie":
@@ -365,7 +365,7 @@ if source == "Selfie":
     if selfie is not None:
         # Process the image using the function defined above
         st.image(selfie)
-        all_faces_info = process_frame_recognition(selfie)  # No need to convert the image to PIL format or display it again
+        all_faces_info = process_frame_recognition(selfie, model_name)  # No need to convert the image to PIL format or display it again
 
 
 if all_faces_info is not None:
