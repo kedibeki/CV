@@ -3,7 +3,7 @@
 
 <ul style="margin-left: 5px; list-style-type: none;">
     ✔  <b>Healthcare</b>: Instrumental for patient surveillance and psychological health analysis.<br>
-    ✔  <b>Entertainment Industry</b>: Capable of assessing audience responses to films or commercials.
+    ✔  <b>Entertainment Industry</b>: Capable of assessing audience responses to films or commercials.<br>
     ✔  <b>Fashion and e-commerce</b>: Leverages computer vision to suggest apparel and accessories based on the user's attributes, style, and predilections.<br>
     ✔  <b>Crime Investigation</b>: Validates the identity of a suspect or a victim using attributes Recognition and biometric verification.<br>
     ✔  <b>Automotive Industry</b>: Enhances safety measures by monitoring the alertness of the driver.<br>
